@@ -44,6 +44,6 @@ poetry install
 
 ## Run the project
 
-```
+```sh
 poetry run run
 ```
