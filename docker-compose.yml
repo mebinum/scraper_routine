@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:latest
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - ./.local/docker/data:/var/lib/mysql
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: "${DB_PASS}"
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: "${PGDATA}"
+      TZ: 'Australia/Sydney'
+      PGTZ: 'Australia/Sydney'
