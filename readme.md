@@ -4,7 +4,6 @@
 - Python 3.11.5
 - [Poetry](https://python-poetry.org/docs/#installation)
 - [Docker](https://docs.docker.com/engine/install/)
--
 
 ## Configure env vars
 
@@ -34,7 +33,9 @@ docker-compose up db -d
 pyenv virtualenv 3.11.5 scraper
 ```
 
-## Start project dependencies. pip install poetry if you need
+## Start project dependencies.
+
+Run `pip install poetry` if you need to install poetry.
 
 ```sh
 # select pyenv
