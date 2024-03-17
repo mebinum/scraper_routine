@@ -1,10 +1,8 @@
-import asyncio
 import zipfile
 from typing import List
 import tempfile
 import requests
 from splinter import Browser
-from scraper.database import flush_db
 from scraper.logger import log, Logger
 from scraper.data_loader import DataLoader
 from scraper.utils import extract_zip, sanitize_url
@@ -38,7 +36,7 @@ def scrape_csv_files(pageURL: str, xpath_selector: str) -> List[str]:
             browser = Browser()
             log("Using Firefox Web Driver...\n")
 
-    browser.driver.maximize_window()
+    # browser.driver.maximize_window()
     browser.visit(pageURL)
 
     #

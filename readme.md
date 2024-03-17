@@ -2,8 +2,12 @@
 # Dependencies
 
 - Python 3.11.5
+- [PhantomJS Browser](https://phantomjs.org/download.html)
+     * alternatively chrome or firefox can be used
 - [Poetry](https://python-poetry.org/docs/#installation)
 - [Docker](https://docs.docker.com/engine/install/)
+
+Install the dependencies
 
 ## Configure env vars
 
@@ -21,7 +25,11 @@ mkdir -p .local/docker/data
 
 # create temp folder used for downloading and unzipping
 mkdir -p .local/temp
+```
 
+### Start the Database
+
+```sh
 # start database
 docker-compose up db -d
 ```
