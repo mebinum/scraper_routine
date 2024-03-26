@@ -52,25 +52,27 @@ def download_csv_files(urls: List[str]) -> dict[str, str]:
     downloaded_files = {}
 
     for url in urls:
-        try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix= ".csv" if url.endswith(".csv") else ".zip") as temp_file:
-                response = requests.get(url)
+       file_name = download_file_from_url(url)
+       downloaded_files[url] = file_name
+        
+    return downloaded_files
+
+def download_file_from_url(url: str) -> str:
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix= ".csv" if url.endswith(".csv") else ".zip") as temp_file:
+            response = requests.get(url)
                 # Check if the request was successful
-                if response.status_code == 200:
-                    temp_file.write(response.content)
-                    downloaded_files[url] = temp_file.name
-                    log(
+            if response.status_code == 200:
+                temp_file.write(response.content)
+                log(
                         f"\nDownloaded file from URL: {url}.\nSaved to file: {temp_file.name}"
                     )
-                else:
-                    log(
-                    f"Failed to download CSV file from URL: {url}. Status code: {response.status_code}"
-                )
-        except requests.exceptions.RequestException as e:
-            Logger.error(f"Failed to download CSV file from URL: {url}. Error: {e}")
-            Logger.exception(e)
-
-    return downloaded_files
+                return temp_file.name
+            else:
+                raise Exception(f"Failed to download file from URL: {url}. Error: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        Logger.error(f"Failed to download CSV file from URL: {url}. Error: {e}")
+        Logger.exception(e)
 
 
 def extract_csv_files(file_paths: dict[str, str]) -> dict[str, List[str]]:
@@ -134,8 +136,36 @@ async def task(name, work_queue):
         print(f"Task {name} running")
         await load_data_into_db(url, filepath)
 
+def process_urls(urls: List[str]):
+    for url in urls:
+        log(f"Processing url {url}")
+        # Download the CSV file
+        download_file_path = download_file_from_url(url)
+        # Extract the CSV file or load into db
+        if download_file_path.endswith(".zip"):
+            try:
+                # Extract the zip file
+                log(f"Found zip {download_file_path}\nExtracting Zip...")
+                extracted_files = extract_zip(download_file_path, TEMP_PATH)
+                log(
+                    f"📦 Extracted files from {download_file_path}\nFiles {extracted_files}"
+                )
+                extracted_csv_paths = [
+                    file for file in extracted_files if file.endswith(".csv")
+                ]
+                load_database_with_csvs({url: extracted_csv_paths})
+            except zipfile.BadZipFile:
+                Logger.error(
+                    f"❌ Failed to extract CSV files from zip: {download_file_path}. The file is not a valid zip file."
+                )
+        elif download_file_path.endswith(".csv"):
+            load_database_with_csvs({url: [download_file_path]})
+        else:
+            log(f"Skipping file with unsupported format: {download_file_path}")
+
 
 def main() -> None:
+
     # Scrape CSV files
     urls = scrape_csv_files(DOWNLOAD_URI, DOWNLOAD_LINKS_XPATH)
 
@@ -143,14 +173,16 @@ def main() -> None:
 
     # Download CSV files
     log(f"Downloading files from url {urls}")
-    file_paths = download_csv_files(urls)
+    process_urls(urls)
+    
+    # file_paths = download_csv_files(urls)
 
-    # Extract CSV files
-    log("Extracting all csv files")
-    csv_file_paths = extract_csv_files(file_paths)
+    # # Extract CSV files
+    # log("Extracting all csv files")
+    # csv_file_paths = extract_csv_files(file_paths)
 
-    # log(f"All extracted csvs {csv_file_paths}")
-    load_database_with_csvs(csv_file_paths)
+    # # log(f"All extracted csvs {csv_file_paths}")
+    # load_database_with_csvs(csv_file_paths)
 
 
 if __name__ == "__main__":
